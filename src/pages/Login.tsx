@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   TextField,
   Button,
@@ -8,102 +8,123 @@ import {
   FormControlLabel,
   Checkbox,
   Link,
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // ✅ import navigation hook
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
-const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate(); // ✅ initialize navigation
+const Login = () => {
+  const navigate = useNavigate();
 
-  // ✅ handle form submit
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault(); // prevent page reload
-    console.log('Email:', email);
-    console.log('Password:', password);
+  const [values, setValues] = useState({
+    username: "",
+    password: "",
+    remember: false,
+  });
 
-    // store fake token
-    localStorage.setItem('token', 'my-sample-token');
-    alert('Logged in!');
+  const [error, setError] = useState("");
 
-    // ✅ go to home
-    navigate('/home');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValues((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const res = await fetch("https://dummyjson.com/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Invalid credentials");
+      }
+
+      const data = await res.json();
+      console.log("Login success:", data);
+      localStorage.setItem("token", data.token);
+      navigate("/todos");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Invalid username or password");
+    }
   };
 
   return (
     <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
-      }}
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      height="100vh"
+      bgcolor="#f5f5f5"
     >
-      <Paper elevation={3} sx={{ padding: 4, width: 400, borderRadius: 3 }}>
-        <Typography variant="h5" gutterBottom align="center">
+      <Paper elevation={3} sx={{ padding: 4, width: 400 }}>
+        <Typography variant="h5" align="center" gutterBottom>
           Login
         </Typography>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <TextField
-            id="email"
-            label="Email"
-            variant="outlined"
-            type="email"
             fullWidth
+            label="Username *"
+            name="username"
+            value={values.username}
+            onChange={handleChange}
             margin="normal"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
           />
-
           <TextField
-            id="password"
-            label="Password"
-            variant="outlined"
+            fullWidth
+            label="Password *"
+            name="password"
             type="password"
-            fullWidth
+            value={values.password}
+            onChange={handleChange}
             margin="normal"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
           />
 
-          {/* ✅ Remember Me + Forgot Password */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mt: 1,
-            }}
-          >
+          <Box display="flex" justifyContent="space-between" alignItems="center">
             <FormControlLabel
-              control={<Checkbox  size="small" />}
+              control={
+                <Checkbox
+                  name="remember"
+                  checked={values.remember}
+                  onChange={handleChange}
+                />
+              }
               label="Remember Me"
             />
-            <Link href="#" underline="hover" fontSize="0.875rem">
+            <Link href="#" variant="body2">
               Forgot Password?
             </Link>
           </Box>
 
+          {error && (
+            <Typography color="error" variant="body2" mt={1}>
+              {error}
+            </Typography>
+          )}
+
           <Button
             type="submit"
+            fullWidth
             variant="contained"
             color="primary"
-            fullWidth
-            sx={{ mt: 3 }}
+            sx={{ mt: 2 }}
           >
-            Login
+            LOGIN
           </Button>
 
-          {/* ✅ Signup Link */}
-          <Typography variant="body2" align="center" sx={{ mt: 3 }}>
-            New User?{' '}
-            <Link href="#" underline="hover">
-              Signup
-            </Link>
+          <Typography align="center" variant="body2" mt={2}>
+            New User? <Link href="#">Signup</Link>
           </Typography>
         </form>
       </Paper>
@@ -111,4 +132,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default Login;

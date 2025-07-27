@@ -2,8 +2,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/Login";
-import HomePage from "./pages/Home";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Todos from "./pages/todos";
 
 function App() {
   return (
@@ -12,10 +13,10 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/home"
+          path="/todos"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <Todos />
             </ProtectedRoute>
           }
         />

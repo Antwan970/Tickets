@@ -2,73 +2,52 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  TablePagination,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Typography,
-  TablePagination,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 
-interface User {
+interface Todo {
   id: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+  todo: string;
+  completed: boolean;
+  userId: number;
 }
 
-const HomePage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+const Todos: React.FC = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [search, setSearch] = useState('');
-  const [property, setProperty] = useState<'id' | 'username' | 'email'>('username');
+  const [property, setProperty] = useState<'id' | 'todo' | 'userId'>('todo');
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    const fetchUsers = async () => {
+    const fetchTodos = async () => {
       try {
-        const res = await fetch('https://dummyjson.com/users', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error('Failed to fetch users');
-        }
-
+        const res = await fetch(`https://dummyjson.com/todos?limit=150`);
         const data = await res.json();
-        setUsers(data.users);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        localStorage.removeItem('token');
-        navigate('/login');
+        setTodos(data.todos);
+      } catch (err) {
+        console.error('Failed to fetch todos:', err);
       }
     };
+    fetchTodos();
+  }, []);
 
-    fetchUsers();
-  }, [navigate]);
-
-  const filteredUsers = users.filter((user) =>
-    user[property]?.toString().toLowerCase().includes(search.toLowerCase())
+  const filteredTodos = todos.filter((todo) =>
+    todo[property].toString().toLowerCase().includes(search.toLowerCase())
   );
 
-  const paginatedUsers = filteredUsers.slice(
+  const paginatedTodos = filteredTodos.slice(
     currentPage * rowsPerPage,
     currentPage * rowsPerPage + rowsPerPage
   );
@@ -85,7 +64,7 @@ const HomePage: React.FC = () => {
   return (
     <Box sx={{ p: 4 }}>
       <Typography variant="h4" gutterBottom>
-        User List
+        Todos List
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -102,11 +81,11 @@ const HomePage: React.FC = () => {
             labelId="filter-label"
             value={property}
             label="Filter By"
-            onChange={(e) => setProperty(e.target.value as 'id' | 'username' | 'email')}
+            onChange={(e) => setProperty(e.target.value as 'id' | 'todo' | 'userId')}
           >
             <MenuItem value="id">ID</MenuItem>
-            <MenuItem value="username">Username</MenuItem>
-            <MenuItem value="email">Email</MenuItem>
+            <MenuItem value="todo">Todo</MenuItem>
+            <MenuItem value="userId">User ID</MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -116,16 +95,18 @@ const HomePage: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell><b>ID</b></TableCell>
-              <TableCell><b>Username</b></TableCell>
-              <TableCell><b>Email</b></TableCell>
+              <TableCell><b>Todo</b></TableCell>
+              <TableCell><b>Completed</b></TableCell>
+              <TableCell><b>User ID</b></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{user.email}</TableCell>
+            {paginatedTodos.map((todo) => (
+              <TableRow key={todo.id}>
+                <TableCell>{todo.id}</TableCell>
+                <TableCell>{todo.todo}</TableCell>
+                <TableCell>{todo.completed ? '✅' : '❌'}</TableCell>
+                <TableCell>{todo.userId}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -133,7 +114,7 @@ const HomePage: React.FC = () => {
 
         <TablePagination
           component="div"
-          count={filteredUsers.length}
+          count={filteredTodos.length}
           page={currentPage}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
@@ -145,4 +126,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export default Todos;
