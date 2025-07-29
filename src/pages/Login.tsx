@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextField,
   Button,
@@ -11,6 +11,8 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+const TOKEN_EXPIRATION_MS = 3600000; // 1 hour
+
 const Login = () => {
   const navigate = useNavigate();
 
@@ -21,6 +23,21 @@ const Login = () => {
   });
 
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const loginTime = localStorage.getItem("loginTime") || sessionStorage.getItem("loginTime");
+
+    if (token && loginTime) {
+      const elapsed = Date.now() - Number(loginTime);
+      if (elapsed < TOKEN_EXPIRATION_MS) {
+        navigate("/todos");
+      } else {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+    }
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValues((prev) => ({
@@ -50,8 +67,11 @@ const Login = () => {
       }
 
       const data = await res.json();
-      console.log("Login success:", data);
-      localStorage.setItem("token", data.token);
+      const storage = values.remember ? localStorage : sessionStorage;
+
+      storage.setItem("token", data.token);
+      storage.setItem("loginTime", Date.now().toString());
+
       navigate("/todos");
     } catch (err) {
       console.error("Login error:", err);
