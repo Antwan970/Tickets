@@ -11,8 +11,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-const TOKEN_EXPIRATION_MS = 3600000; // 1 hour
-
 const Login = () => {
   const navigate = useNavigate();
 
@@ -26,16 +24,9 @@ const Login = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    const loginTime = localStorage.getItem("loginTime") || sessionStorage.getItem("loginTime");
 
-    if (token && loginTime) {
-      const elapsed = Date.now() - Number(loginTime);
-      if (elapsed < TOKEN_EXPIRATION_MS) {
-        navigate("/todos");
-      } else {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
+    if (token) {
+      navigate("/todos");
     }
   }, [navigate]);
 
@@ -69,8 +60,7 @@ const Login = () => {
       const data = await res.json();
       const storage = values.remember ? localStorage : sessionStorage;
 
-      storage.setItem("token", data.token);
-      storage.setItem("loginTime", Date.now().toString());
+      storage.setItem("token", data.accessToken); 
 
       navigate("/todos");
     } catch (err) {

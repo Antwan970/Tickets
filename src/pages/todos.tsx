@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   TextField,
@@ -19,28 +19,57 @@ import {
 import type { Todo } from '../type/Todo';
 
 const Todos: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[] | null>(null); 
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [search, setSearch] = useState('');
   const [property, setProperty] = useState<'id' | 'todo' | 'userId'>('todo');
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalTodos, setTotalTodos] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  
-  if (todos === null) {
-    fetch('https://dummyjson.com/todos')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load todos');
-        return res.json();
-      })
-      .then((data) => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchTodos = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const skip = currentPage * rowsPerPage;
+        const res = await fetch(`https://dummyjson.com/auth/todos?limit=${rowsPerPage}&skip=${skip}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch todos');
+
+        const data = await res.json();
         setTodos(data.todos);
-      })
-      .catch((err) => {
+        setTotalTodos(data.total);
+      } catch (err) {
         console.error('Fetch error:', err);
         setError('Failed to load todos.');
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchTodos();
+  }, [currentPage, rowsPerPage, token]);
+
+  if (!token) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography color="error">You are not authenticated.</Typography>
+      </Box>
+    );
+  }
+
+  if (loading) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
         <Typography variant="h5" gutterBottom>
@@ -63,12 +92,7 @@ const Todos: React.FC = () => {
     todo[property].toString().toLowerCase().includes(search.toLowerCase())
   );
 
-  const paginatedTodos = filteredTodos.slice(
-    currentPage * rowsPerPage,
-    currentPage * rowsPerPage + rowsPerPage
-  );
-
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setCurrentPage(newPage);
   };
 
@@ -117,7 +141,7 @@ const Todos: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedTodos.map((todo) => (
+            {filteredTodos.map((todo) => (
               <TableRow key={todo.id}>
                 <TableCell>{todo.id}</TableCell>
                 <TableCell>{todo.todo}</TableCell>
@@ -130,7 +154,7 @@ const Todos: React.FC = () => {
 
         <TablePagination
           component="div"
-          count={filteredTodos.length}
+          count={totalTodos}
           page={currentPage}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
