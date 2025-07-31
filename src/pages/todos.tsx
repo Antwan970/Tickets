@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -15,82 +15,47 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Button
 } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import type { Todo } from '../type/Todo';
 
+const fetchTodos = async (
+  page: number,
+  limit: number,
+  token: string | null
+): Promise<{ todos: Todo[]; total: number }> => {
+  const skip = page * limit;
+  const res = await fetch(`https://dummyjson.com/auth/todos?limit=${limit}&skip=${skip}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch todos');
+
+  return res.json();
+};
+
 const Todos: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
   const [search, setSearch] = useState('');
   const [property, setProperty] = useState<'id' | 'todo' | 'userId'>('todo');
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [totalTodos, setTotalTodos] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-  useEffect(() => {
-    if (!token) return;
-
-    const fetchTodos = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const skip = currentPage * rowsPerPage;
-        const res = await fetch(`https://dummyjson.com/auth/todos?limit=${rowsPerPage}&skip=${skip}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch todos');
-
-        const data = await res.json();
-        setTodos(data.todos);
-        setTotalTodos(data.total);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError('Failed to load todos.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTodos();
-  }, [currentPage, rowsPerPage, token]);
-
-  if (!token) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Typography color="error">You are not authenticated.</Typography>
-      </Box>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h5" gutterBottom>
-          Loading Todos...
-        </Typography>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
-  const filteredTodos = todos.filter((todo) =>
-    todo[property].toString().toLowerCase().includes(search.toLowerCase())
-  );
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['todos', currentPage, rowsPerPage],
+    queryFn: () => fetchTodos(currentPage, rowsPerPage, token),
+    enabled: !!token,
+  });
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setCurrentPage(newPage);
@@ -101,11 +66,50 @@ const Todos: React.FC = () => {
     setCurrentPage(0);
   };
 
+  if (!token) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography color="error">You are not authenticated.</Typography>
+      </Box>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h5" gutterBottom>
+          Loading Todos...
+        </Typography>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography color="error">{(error as Error).message}</Typography>
+      </Box>
+    );
+  }
+
+  const filteredTodos = data?.todos?.filter((todo) =>
+    todo[property].toString().toLowerCase().includes(search.toLowerCase())
+  ) ?? [];
+
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Todos List
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">Todos List</Typography>
+        <Button
+          component={Link}
+          to="/new-todo"
+          variant="contained"
+          color="primary"
+        >
+          Add New Todo
+        </Button>
+      </Box>
 
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <TextField
@@ -138,23 +142,35 @@ const Todos: React.FC = () => {
               <TableCell><b>Todo</b></TableCell>
               <TableCell><b>Completed</b></TableCell>
               <TableCell><b>User ID</b></TableCell>
+              <TableCell><b>Actions</b></TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
-            {filteredTodos.map((todo) => (
-              <TableRow key={todo.id}>
-                <TableCell>{todo.id}</TableCell>
-                <TableCell>{todo.todo}</TableCell>
-                <TableCell>{todo.completed ? '✅' : '❌'}</TableCell>
-                <TableCell>{todo.userId}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+         <TableBody>
+  {filteredTodos.map((todo) => (
+    <TableRow key={todo.id}>
+      <TableCell>{todo.id}</TableCell>
+      <TableCell>{todo.todo}</TableCell>
+      <TableCell>{todo.completed ? '✅' : '❌'}</TableCell>
+      <TableCell>{todo.userId}</TableCell>
+      <TableCell>
+        <Button
+          variant="outlined"
+          color="primary"
+          component={Link}
+          to={`/edit-todo/${todo.id}`}
+        >
+          Edit
+        </Button>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
         </Table>
 
         <TablePagination
           component="div"
-          count={totalTodos}
+          count={Number(data?.total)}
           page={currentPage}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
