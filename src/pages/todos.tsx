@@ -55,13 +55,15 @@ const Todos: React.FC = () => {
 
     },
   });
-  const [selectedTodo, setSelectedTodo] = useState<string | null>(null);
+ const [selectedTodo, setSelectedTodo] = useState<{ id: number; todo: string; completed: boolean } | null>(null);
+
 const [openDialog, setOpenDialog] = useState(false);
 
-const handleView = (todoText: string) => {
-  setSelectedTodo(todoText);
+const handleView = (todo: { id: number; todo: string; completed: boolean }) => {
+  setSelectedTodo(todo);
   setOpenDialog(true);
 };
+
 
 const handleCloseDialog = () => {
   setOpenDialog(false);
@@ -141,6 +143,7 @@ const handleCloseDialog = () => {
                   <TableCell>{todo.completed ? '✅' : '❌'}</TableCell>
                   <TableCell>{todo.userId}</TableCell>
                   <TableCell>
+                    
                     <Box display="flex" gap={1}>
                       <Button variant="outlined" color="primary"
                         component={Link} to={`/edit-todo/${todo.id}`}>
@@ -149,7 +152,7 @@ const handleCloseDialog = () => {
                      <IconButton
     size="small"
     color="info"
-    onClick={() => handleView(todo.todo)}
+    onClick={() => handleView(todo)}
     sx={{ mr: 1 }}
   >
     <VisibilityIcon fontSize="small" />
@@ -189,9 +192,14 @@ const handleCloseDialog = () => {
         </Paper>
         <Dialog open={openDialog} onClose={handleCloseDialog}>
   <DialogTitle>Todo Details</DialogTitle>
-  <DialogContent>
-    <Typography>{selectedTodo}</Typography>
-  </DialogContent>
+ <DialogContent dividers>
+  <Typography><strong>ID:</strong> {selectedTodo?.id}</Typography>
+  <Typography><strong>Todo:</strong> {selectedTodo?.todo}</Typography>
+  <Typography>
+    <strong>Completed:</strong> {selectedTodo?.completed ? '✅ Yes' : '❌ No'}
+  </Typography>
+</DialogContent>
+
   <DialogActions>
     <Button onClick={handleCloseDialog} color="primary">Close</Button>
   </DialogActions>
