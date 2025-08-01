@@ -38,36 +38,38 @@ const Login = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    try {
-      const res = await fetch("https://dummyjson.com/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: values.username,
-          password: values.password,
-        }),
-      });
+  try {
+    const res = await fetch("https://dummyjson.com/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: values.username,
+        password: values.password,
+      }),
+    });
 
-      if (!res.ok) {
-        throw new Error("Invalid credentials");
-      }
-
-      const data = await res.json();
-      const storage = values.remember ? localStorage : sessionStorage;
-
-      storage.setItem("token", data.accessToken); 
-
-      navigate("/todos");
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Invalid username or password");
+    if (!res.ok) {
+      throw new Error("Invalid credentials");
     }
-  };
+
+    const data = await res.json();
+    const storage = values.remember ? localStorage : sessionStorage;
+
+    storage.setItem("token", data.accessToken); 
+    storage.setItem("user", JSON.stringify(data)); 
+
+    navigate("/todos");
+  } catch (err) {
+    console.error("Login error:", err);
+    setError("Invalid username or password");
+  }
+};
+
 
   return (
     <Box
