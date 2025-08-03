@@ -1,149 +1,129 @@
-/*import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Typography,
-  TablePagination,
+  Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, Typography, TextField,
+  Box, FormControl, InputLabel, Select, MenuItem,
+  TablePagination
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
+import type { Employee } from '../type/User';
 
 const HomePage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Employee[]>([]);
   const [search, setSearch] = useState('');
-  const [property, setProperty] = useState<'id' | 'username' | 'email'>('username');
-  const [currentPage, setCurrentPage] = useState(0);
+  const [attribute, setAttribute] = useState<'name' | 'email' | 'id'>('name');
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+ useEffect(() => {
+  fetch("http://localhost:1337/api/employees")
+    .then((res) => res.json())
+    .then((data) => {
+      setUsers(data.data as Employee[]); 
+    })
+    .catch((err) => console.error("Error fetching employees:", err));
+}, []);
 
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch('https://dummyjson.com/users', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
 
-        if (!res.ok) {
-          throw new Error('Failed to fetch users');
-        }
 
-        const data = await res.json();
-        setUsers(data.users);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        localStorage.removeItem('token');
-        navigate('/login');
-      }
-    };
+  const filteredUsers = users.filter((user) => {
+    const valueToCheck =
+      attribute === 'name'
+        ? `${user.FirstName} ${user.LastName}`
+        : attribute === 'email'
+        ? user.Email
+        : String(user.id);
 
-    fetchUsers();
-  }, [navigate]);
-
-  const filteredUsers = users.filter((user) =>
-    user[property]?.toString().toLowerCase().includes(search.toLowerCase())
-  );
+    return valueToCheck.toLowerCase().includes(search.toLowerCase());
+  });
 
   const paginatedUsers = filteredUsers.slice(
-    currentPage * rowsPerPage,
-    currentPage * rowsPerPage + rowsPerPage
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setCurrentPage(newPage);
+  const handleChangePage = (_: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setCurrentPage(0);
+    setPage(0);
   };
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        User List
-      </Typography>
+  
+      <Box sx={{ padding: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Users
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          List of users
+        </Typography>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <TextField
-          label="Search"
-          variant="outlined"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <Box sx={{ display: 'flex', gap: 2, marginBottom: 2 }}>
+          <TextField
+            label={`Search by ${attribute}`}
+            variant="outlined"
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel id="filter-label">Filter By</InputLabel>
-          <Select
-            labelId="filter-label"
-            value={property}
-            label="Filter By"
-            onChange={(e) => setProperty(e.target.value as 'id' | 'username' | 'email')}
-          >
-            <MenuItem value="id">ID</MenuItem>
-            <MenuItem value="username">Username</MenuItem>
-            <MenuItem value="email">Email</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Attribute</InputLabel>
+            <Select
+              value={attribute}
+              label="Attribute"
+              onChange={(e) => setAttribute(e.target.value as 'name' | 'email' | 'id')}
+            >
+              <MenuItem value="name">Name</MenuItem>
+              <MenuItem value="email">Email</MenuItem>
+              <MenuItem value="id">ID</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
-      <Paper elevation={2}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><b>ID</b></TableCell>
-              <TableCell><b>Username</b></TableCell>
-              <TableCell><b>Email</b></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{user.email}</TableCell>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>First Name</TableCell>
+                <TableCell>Last Name</TableCell>
+                <TableCell>Username</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Age</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {paginatedUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.id}</TableCell>
+                  <TableCell>{user.FirstName}</TableCell>
+                  <TableCell>{user.LastName}</TableCell>
+                  <TableCell>{user.Username}</TableCell>
+                  <TableCell>{user.Email}</TableCell>
+                  <TableCell>{user.Age}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-        <TablePagination
-          component="div"
-          count={filteredUsers.length}
-          page={currentPage}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-      </Paper>
-    </Box>
+          <TablePagination
+            component="div"
+            count={filteredUsers.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            labelRowsPerPage="Rows per page:"
+          />
+        </TableContainer>
+      </Box>
+   
   );
 };
 
 export default HomePage;
-*/

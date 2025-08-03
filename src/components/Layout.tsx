@@ -10,6 +10,7 @@ import {
   MenuItem,
   Box,
   Container,
+  Button,
 } from '@mui/material';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 
@@ -39,12 +40,21 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <AppBar position="static">
-        <Toolbar>
+      <AppBar position="static" sx={{ mb: 2 }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-           Dashboard
+            Dashboard
           </Typography>
-          <Box>
+          <Button
+              color="inherit"
+              onClick={() => navigate('/HomePage')}
+              variant={location.pathname === '/HomePage' ? 'outlined' : 'text'}
+            >
+              Users
+            </Button>
+            </Box>
+         <Box>
             <IconButton
               size="large"
               edge="end"

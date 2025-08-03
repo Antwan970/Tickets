@@ -158,7 +158,7 @@ const handleCloseDialog = () => {
     <VisibilityIcon fontSize="small" />
   </IconButton>
                      <Tooltip title="Delete Todo">
-                    <IconButton
+                    <IconButton 
                        size="small"
                        color="error"
                        sx={{ mr: 1,  textAlign:'right'}}
@@ -191,13 +191,13 @@ const handleCloseDialog = () => {
           />
         </Paper>
         <Dialog open={openDialog} onClose={handleCloseDialog}>
-  <DialogTitle>Todo Details</DialogTitle>
+                                           <DialogTitle>Todo Details</DialogTitle>
  <DialogContent dividers>
   <Typography><strong>ID:</strong> {selectedTodo?.id}</Typography>
   <Typography><strong>Todo:</strong> {selectedTodo?.todo}</Typography>
   <Typography>
     <strong>Completed:</strong> {selectedTodo?.completed ? '✅ Yes' : '❌ No'}
-  </Typography>
+  </Typography> 
 </DialogContent>
 
   <DialogActions>
