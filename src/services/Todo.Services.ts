@@ -1,18 +1,28 @@
-import type { Todo } from "../type/Todo";
-const fetchTodos = async (
-  page: number,
-  limit: number,
-  token: string | null
-): Promise<{ todos: Todo[]; total: number }> => {
-  const skip = page * limit;
-  const res = await fetch(`https://dummyjson.com/auth/todos?limit=${limit}&skip=${skip}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+// services/Todo.Services.ts
+import type { todo } from '../type/Todo';
 
-  if (!res.ok) throw new Error('Failed to fetch todos');
+export const fetchTodos = async (
+  page = 0,
+  pageSize = 5,
+  search: string,
+  property: string
+): Promise<{ todos: todo[]; total: number }> => {
+  const url =
+    search && property
+      ? `http://localhost:1337/api/todos?pagination[page]=${
+          page + 1
+        }&pagination[pageSize]=${pageSize}&filters[${property}][$contains]=${search}`
+      : `http://localhost:1337/api/todos?pagination[page]=${
+          page + 1
+        }&pagination[pageSize]=${pageSize}`;
 
-  return res.json();
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch todos from Strapi');
+  }
+
+  const json = await res.json();
+
+  return json;
 };
-export default fetchTodos;

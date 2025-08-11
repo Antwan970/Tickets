@@ -582,7 +582,7 @@ export interface ApiTodoTodo extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    Completed: Schema.Attribute.Boolean;
+    completed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -594,7 +594,7 @@ export interface ApiTodoTodo extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    UserId: Schema.Attribute.BigInteger;
+    userId: Schema.Attribute.BigInteger;
   };
 }
 

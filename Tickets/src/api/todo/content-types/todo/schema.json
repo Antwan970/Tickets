@@ -14,11 +14,12 @@
     "todo": {
       "type": "string"
     },
-    "UserId": {
+    "userId": {
       "type": "biginteger"
     },
-    "Completed": {
-      "type": "boolean"
+    "completed": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -60,7 +60,7 @@ const Login = () => {
     const data = await res.json();
     const storage = values.remember ? localStorage : sessionStorage;
 
-    storage.setItem("token", data.accessToken); 
+    storage.setItem("token", import.meta.env.VITE_TOKEN); 
     storage.setItem("user", JSON.stringify(data)); 
 
     navigate("/todos");
