@@ -532,6 +532,7 @@ export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     Password: Schema.Attribute.Password & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
+    todos: Schema.Attribute.Relation<'oneToMany', 'api::todo.todo'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -594,7 +595,7 @@ export interface ApiTodoTodo extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    userId: Schema.Attribute.BigInteger;
+    userId: Schema.Attribute.Relation<'manyToOne', 'api::employee.employee'>;
   };
 }
 

@@ -1,6 +1,6 @@
 // src/components/Layout.tsx
 import React from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -16,6 +16,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   // ✅ Safe user retrieval
@@ -43,18 +44,25 @@ const Layout: React.FC = () => {
       <AppBar position="static" sx={{ mb: 2 }}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Dashboard
-          </Typography>
-          <Button
+            {/* ✅ Dashboard is now a button */}
+            <Button
+              color="inherit"
+              onClick={() => navigate('/todos')}
+              variant={location.pathname === '/todos' ? 'outlined' : 'text'}
+            >
+              Dashboard
+            </Button>
+
+            <Button
               color="inherit"
               onClick={() => navigate('/HomePage')}
               variant={location.pathname === '/HomePage' ? 'outlined' : 'text'}
             >
               Users
             </Button>
-            </Box>
-         <Box>
+          </Box>
+
+          <Box>
             <IconButton
               size="large"
               edge="end"

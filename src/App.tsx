@@ -31,6 +31,7 @@ function App() {
             </ProtectedRoute>
           }
           />
+         
         </Route>
       </Routes>
     </Router>

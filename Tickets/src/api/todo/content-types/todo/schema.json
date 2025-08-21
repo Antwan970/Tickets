@@ -14,12 +14,15 @@
     "todo": {
       "type": "string"
     },
-    "userId": {
-      "type": "biginteger"
-    },
     "completed": {
       "type": "boolean",
       "default": false
+    },
+    "userId": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee.employee",
+      "inversedBy": "todos"
     }
   }
 }

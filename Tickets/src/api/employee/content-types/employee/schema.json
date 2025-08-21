@@ -34,6 +34,12 @@
     "Age": {
       "type": "integer",
       "required": true
+    },
+    "todos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::todo.todo",
+      "mappedBy": "userId"
     }
   }
 }
